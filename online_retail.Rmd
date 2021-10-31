@@ -1,0 +1,924 @@
+---
+title: "Meningkatkan penjualan dengan mengetahui perilaku pembelian customer"
+subtitle: "Penerapan market basket analysis pada online retail"
+author: "Gasha Sarwono"
+date: "7/22/2021"
+output: 
+  html_document:
+    theme: flatly
+    higlight: zenburn
+    toc: true
+    toc_float:
+      collapsed: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE
+  )
+
+options(scipen = 999,
+        digits = 5)
+```
+
+# 1. Latar Belakang
+
+**Pendahuluan**
+
+Pertumbuhan industri digital di Indonesia terus melaju dengan cepat. Istilah perusahaan startup muncul dengan artian perusahaan rintisan baru yang belum lama beroperasi. Selain itu juga perusahaan startup merupakan suatu perusahaan yang menggabungkan unsur sosial dengan ekonomi, atau perusahaan yang memberikan jawaban dari permasalahan di dalam masyarakat (sosial) dengan solusi yang menghasilkan profit (ekonomi). Berdasarkan hasil laporan Digital Creative Industry Society yang dirangkum oleh Indonesia Baik pada tahun 2019, tercatat bahwa terdapat 992 perusahaan startup yang tersebar di berbagai wilayah Indonesia.
+
+```{r echo=FALSE}
+knitr::include_graphics("persebaran.jpg")
+```
+
+Dari hasil laporan tersebut tercatat ada 522 startup di Jabodetabek, 30 startup di Jawa Tengah, 54 startup di Yogyakarta, 44 startup di Jawa Barat , 113 startup di Jawa Timur, 32 startup di Bali dan NTB, 24 startup di Kalimantan, 34 startup di Sulawesi, dan domisili tidak diketahui sebanyak 24 startup.Untuk bidang perusahaannya, perusahaan startup di Indonesia memiliki berbagai macam jenis dan  bidangnya seperti jual beli, transportasi, edukasi, dan lain-lain. Berdasarkan dari hasil laporan Digital Creative Industry Society juga didapatkan bidang usaha perusahaan startup di Indonesia dengan dominasi bidang lainnya dengan 532 startup sebesar 53,63%. Kemudian, bidang e-commerce dengan 352 startup atau sebesar 35,38%. Ketiga, bidang game dengan 55 startup sebesar 5,54%. Terakhir, bidang fintech dengan 53 startup sebesar 5,34%.
+
+```{r echo=FALSE}
+knitr::include_graphics("quantity.jpg")
+```
+
+Seperti yang kita rasakan sekitar awal tahun 2020 Indonesia sedang dilanda pandemi Covid-19. Selain dampak buruk yang diterima, dampak baik juga diterima khususnya perusahaan startup yang bergerak dibidang jual beli. Disaat orang ingin membeli kebutuhan rumah tangga ataupun barang konsumsi lainnya yang mereka inginkan tapi tidak bisa keluar rumah ataupun tidak ingin keluar rumah, mereka memanfaatkan aplikasi perusahaan startup yang bergerak dibidang jual beli. Dari keadaan itulah perusahaan startup jual beli bisa mempunyai potensi mendapatkan profit yang lebih banyak dari sebelumnya.
+
+```{r echo=FALSE}
+knitr::include_graphics("market_basket.png")
+```
+
+Salah satu metode yang bisa digunakan untuk memaksimalkan potensi itu adalah dengan menganalisa produk-produk yang dibeli oleh customer hingga mendapat produk yang diinginkan oleh customer, dengan begitu frekuensi aktifitas pembelian dapat meningkat serta penjual yang menjual barang dapat cepat laku. Dari metode inilah masing-masing orang yang terlibat bisa mendapatkan keuntungan, baik dari sisi pembeli yang tidak perlu susah mencari produk yang mereka inginkan, dari sisi penjual yang barangnya bisa cepat laku dan dari sisi perusahaan yang tingkat frekuensi jual beli semakin meningkat.
+
+## 1.2. Problem Statement
+
+Dengan meningkatnya daya beli masyarakat melalui aplikasi jual beli online, membuka peluang bagi perusahaan e-commerce untuk dapat meningkatkan profitnya. Tetapi beberapa perusahaan masih belum bisa memaksimalkan peluang itu. Salah satu langkah yang bisa digunakan oleh perusahaan e-commerce adalah dengan meningkatkan jumlah frekuensi pembelian dari customer, dengan cara menganalisis produk-produk apa saja yang dibeli oleh customer. Jadi dengan hasil analisis tersebut perusaahan dapat menawarkan produk-produk yang memiliki potensi besar untuk dapat dibeli oleh customer.
+
+## 1.3. Project Idea
+
+Memaksimalkan potensi pembelian produk oleh customer dengan memberikan rekomendasi produk-produk yang diinginkan oleh customer. Oleh karena itu, pada project ini akan dikembangkan sebuah model yang dapat memberikan produk yang memiliki potensi untuk dibeli berdasarkan pola hubungan produk-produk yang dibeli oleh customer.
+
+## 1.4. Problem Scope
+
+Pada project ini akan digunakan sebuah data online retail yang diambil dari situs UCI. Informasi dari dataset yang akan saya gunakan untuk menganalisis adalah:
+
+- InvoiceNo : Nomor Invoice
+
+- StockCode : Kode Produk
+
+- Description : Nama Produk
+
+- Quantity : Jumlah Pembelian
+
+- InvoiceDate : Tanggal dan Waktu Pembelian
+
+- UnitPrice : Harga Barang
+
+- CustomerID : ID Customer
+
+- Country : Nama Negara
+
+Selanjutnya, kebutuhan pembuatan model machine learning untuk menganalisis dibuat dengan metode market basket analysis yaitu mempelajari dan mencari hubungan antar satu atau lebih item dalam suatu dataset, dengan tujuan untuk mengetahui produk-produk yang mungkin akan dibeli secara bersamaan.
+
+## 1.5. Output
+
+Output dari project ini berupa dashboard analisis yang menampilkan Exploratory Data serta menunjukan hubungan antar produk, dan juga menampilkan produk-produk yang mempunyai keterikatan tinggi, sehingga user bisa melihat produk-produk yang memiliki potensi besar untuk dapat dibeli oleh cutomer. Selain itu, user juga dapat menginputkan sebuah produk dan nanti dashboard akan menampilkan produk yang mempunyai hubungan tinggi dengan produk yang diinputkan user.
+
+## 1.6. Business Impact
+
+Dengan mengetahui produk yang akan dibeli customer, maka perusahaan akan mendapat beberapa keuntungan yaitu:
+
+- Lebih efisien daripada mass marketing
+
+- Menargetkan produk kepada segmen tertentu
+
+- Dapat mengenal pelanggannya dengan lebih baik
+
+- Dapat memfokuskan strategi perusahaan
+
+- Mengoptimalkan posisi penempatan produk
+
+- Membuat bundle produk baru yang sesuai
+
+- Memberikan penawaran khusus pada beberapa produk
+
+## 1.7. Refrensi
+
+- Background : [Indonesia Baik](https://indonesiabaik.id/infografis/persebaran-industri-startup-di-indonesia)
+
+- Dataset : [UCI - Online Retail](http://archive.ics.uci.edu/ml/datasets/online+retail)
+
+# 2. Data Preprocessing
+
+## 2.1. Aktifkan Library
+
+Mengaktifkan library yang akan dipakai 
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(lubridate)
+library(plyr) #data transaction
+library(scales)
+library(arules)
+library(arulesViz)
+library(plotly)
+library(glue)
+library(tidytext)
+library(stringr)
+library(janitor)
+```
+
+## 2.2. Import Data
+
+Import data yang akan digunakan
+
+```{r}
+online_retail <- read_excel("Online Retail.xlsx")
+online_retail
+```
+
+```{r echo=FALSE}
+
+
+```
+
+
+## 2.3. Cek Missing Value
+
+```{r}
+colSums(is.na(online_retail))
+```
+
+Berdasarkan dari hasil pengecekan, terdapat ada beberapa data yang missing yaitu Description dan CustomerID. Untuk mempermudah dalam pengolahan data, data yang missing tersebut akan dihilangkan dengan cara menghilangkan baris yang terdapat missing value.
+
+```{r}
+#menghapus missing value
+online_retail <- na.omit(online_retail)
+
+#cek missing value
+colSums(is.na(online_retail))
+```
+
+Data sudah tidak ada lagi missing value dan siap untuk dilakukan langkah selanjutnya.
+
+## 2.4. Cek Tipe Data
+
+Pengecekan tipe data ini bertujuan untuk mengetahui apakah setiap variabel sudah mempunyai tipe data yang sesuai. Berikut adalah beberapa jenis dari tipe data: 
+
+- Character (chr) : Data karakter atau string
+- Integer (int) : Data bilangan bulat
+- Double (dbl) : Data bilangan desimal
+- Datetime (dttm) : Data waktu atau tanggal
+- Factor (fct) : Data kategorik atau kelompok
+
+```{r}
+glimpse(online_retail)
+```
+
+Dari hasil pengecekan tipe data diatas, terdapat beberapa variabel yang tipe datanya belum sesuai. Untuk itu perlu dirubah tipe datanya.
+
+```{r warning=FALSE, message=FALSE}
+#mengubah beberapa tipe data chracter ke factor
+online_retail <- 
+  online_retail %>% 
+  mutate_at(vars(InvoiceNo, StockCode, Description, CustomerID, Country),funs(as.factor))
+```
+
+Mengecek variabel setelah tipe data dirubah 
+
+```{r}
+glimpse(online_retail)
+```
+
+Tipe data untuk semua variabel sudah sesuai
+
+## 2.5. Seleksi Data
+
+```{r echo=FALSE}
+online_retail <- 
+  online_retail %>% 
+  filter(InvoiceDate >= "2010-12-01" & InvoiceDate <= "2011-11-30")
+
+online_retail <- 
+  online_retail %>% 
+  filter(Description != c("SWISS ROLL TOWEL, CHOCOLATE  SPOTS"))
+```
+
+- Pilih Quantity yang nilainya lebih dari 0
+
+```{r}
+online_retail <- 
+  online_retail %>% 
+  filter(Quantity > 0)
+```
+
+- Ambil data Tanggal dan data Waktu dari variabel InvoiceDate
+
+```{r warning=FALSE}
+online_retail$Date <- as.Date(online_retail$InvoiceDate)  
+online_retail$Time <- as.factor(format(online_retail$InvoiceDate,"%H:%M:%S"))
+online_retail <- online_retail[order(online_retail$Description),]
+online_retail
+
+#save model to rds
+saveRDS(online_retail, file = "online_retail.rds")
+```
+
+```{r echo=FALSE}
+Year <- c("< 2010", "2010 - 2016", "2017 - 2019")
+Percentage <- c(15.49, 38.58, 45.93)
+
+background <- data.frame(Year, Percentage)
+background <- background %>% 
+  mutate(label=glue("{Percentage} %"),
+         label2 = glue(
+               "{Year}
+                {Percentage} %"))
+
+background <- 
+  background %>% 
+  ggplot(aes(y = Percentage, x = Year, text = label2)) +
+  geom_col(aes(fill = Year)) +
+  scale_fill_manual(values = c("#FF681F","#FF9B1F","#FFD100")) +
+  geom_text(aes(label = label),
+            position = position_stack(vjust = .5),size = 4) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5)) +
+  labs(title = "E-Commerce Growth",
+       x = "Year",
+       y = "")
+
+background_plot <- ggplotly(background,tooltip = "text")
+
+#save plot to rds
+saveRDS(background_plot, file = "background_plot.rds")
+```
+
+## 2.6. Data Summary
+
+```{r}
+summary(online_retail)
+```
+
+Total Sales
+
+```{r}
+sum(online_retail$UnitPrice)
+```
+
+Total Customer
+
+```{r}
+online_retail$CustomerID %>% unique() %>% length()
+```
+
+Total Transaction
+
+```{r}
+online_retail$InvoiceNo %>% unique() %>% length()
+```
+
+Total Country
+
+```{r}
+online_retail$Country %>% unique() %>% length()   
+```
+
+```{r echo=FALSE}
+Percentage <- c(15.49, 38.58, 45.93)
+Year <- c("< 2010", "2010-2016", "2017-2019")
+background <- data.frame(Percentage,Year)
+background <- background %>% 
+  mutate(label = glue(
+    "{Year}
+    {Percentage} %"))
+
+databackground <- background %>% 
+  arrange(desc(Year)) %>%
+  mutate(prop = Percentage / sum(background$Percentage) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop ) 
+
+data0_0_plot <-
+  ggplot(databackground, aes(x="", y=prop, fill=Year,text=label)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() + 
+  theme(legend.position="none") +
+  geom_text(aes(y = ypos, label = label), color = "white", size=10) +
+  scale_fill_manual(values=c("#AA6415", "#E89815", "#E4BC15"))
+```
+
+Performa Penjualan
+
+```{r}
+data0 <- as.data.frame(table(online_retail$Date))
+data0$Var1 <- ymd(data0$Var1)
+data0 <- data0 %>%
+  mutate(Month = format(Var1, "%Y-%m")) %>%
+  group_by(Month) %>%
+  summarise(Quantity = sum(Freq))
+data0$Month <- as.factor(data0$Month)
+
+data0 <- 
+  ggplot(data0, aes(x=Month, y=Quantity, group=1)) + 
+  geom_area(fill="#FFB21F",position = position_dodge(0),alpha = 0.6) +
+  geom_line(color = "#FFB21F", size = 1.2) +
+  geom_point(color = "#A44512", size = 2)+
+  scale_y_continuous(breaks = seq(0,80000,10000),
+                     labels = comma) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none") +
+  labs(title = "Sales Performance",
+       x = "Date",
+       y = "")
+
+ggplotly(data0)
+```
+
+```{r echo=FALSE}
+data0 <- as.data.frame(table(online_retail$Date))
+data0$Var1 <- ymd(data0$Var1)
+data0 <- data0 %>%
+  mutate(Month = format(Var1, "%Y-%m")) %>%
+  group_by(Month) %>%
+  summarise(Quantity = sum(Freq))
+data0$Month <- as.factor(data0$Month)
+
+data0 <- 
+  ggplot(data0, aes(x=Month, y=Quantity, group=1)) + 
+  geom_area(fill="#FFB21F",position = position_dodge(0),alpha = 0.6) +
+  geom_line(color = "#FFB21F", size = 1.2) +
+  geom_point(color = "#A44512", size = 2)+
+  scale_y_continuous(breaks = seq(0,80000,10000),
+                     labels = comma) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none") +
+  labs(title = "Sales Performance",
+       x = "Date",
+       y = "")
+
+data0_plot <- ggplotly(data0)
+
+#save plot to rds
+saveRDS(data0_plot, file = "data0_plot.rds")
+```
+
+Top 10 produk yang paling banyak dibeli
+
+```{r}
+data1 <- as.data.frame(table(online_retail$Description))
+data1 <- data1[order(data1$Freq,decreasing = T),] 
+data1 <- setNames(data1,c("Product","Quantity"))
+data1 <- data1 %>% 
+  mutate(label=glue(
+    "Product: {Product}
+    Quantity: {Quantity}"))
+
+data1 <- 
+  data1 %>% 
+  head(10) %>% 
+  ggplot(aes(y = reorder(Product, Quantity), x = Quantity,text=label)) +
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Top 10 Best Seller Product",
+       x = "Quantity",
+       y = "")
+ggplotly(data1,tooltip = "text")
+```
+
+```{r echo=FALSE}
+data1 <- as.data.frame(table(online_retail$Description))
+data1 <- data1[order(data1$Freq,decreasing = T),] 
+data1 <- setNames(data1,c("Product","Quantity"))
+data1 <- data1 %>% 
+  mutate(label=glue(
+    "Product: {Product}
+    Quantity: {Quantity}"))
+
+data1 <- 
+  data1 %>% 
+  head(10) %>% 
+  ggplot(aes(y = reorder(Product, Quantity), x = Quantity,text=label)) +
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Top 10 Best Seller Product",
+       x = "Quantity",
+       y = "")
+
+data1_plot <- ggplotly(data1,tooltip = "text")
+
+#save plot to rds
+saveRDS(data1_plot, file = "data1_plot.rds")
+```
+
+Top 10 pembeli dengan pembelian terbanyak
+
+```{r}
+data2 <- as.data.frame(table(online_retail$CustomerID))
+data2 <- data2[order(data2$Freq,decreasing = T),] 
+data2 <- setNames(data2,c("CustomerID","Quantity"))
+data2 <- data2 %>% 
+  mutate(label=glue(
+    "CustomerID: {CustomerID}
+    Quantity: {Quantity}"))
+
+data2 <- 
+  data2 %>% 
+  head(10) %>% 
+  ggplot(aes(y = reorder(CustomerID, Quantity), x = Quantity,text=label)) +
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Top 10 Best Customer",
+       x = "Quantity",
+       y = "")
+ggplotly(data2,tooltip = "text")
+```
+
+```{r echo=FALSE}
+data2 <- as.data.frame(table(online_retail$CustomerID))
+data2 <- data2[order(data2$Freq,decreasing = T),] 
+data2 <- setNames(data2,c("CustomerID","Quantity"))
+data2 <- data2 %>% 
+  mutate(label=glue(
+    "CustomerID: {CustomerID}
+    Quantity: {Quantity}"))
+
+data2 <- 
+  data2 %>% 
+  head(10) %>% 
+  ggplot(aes(y = reorder(CustomerID, Quantity), x = Quantity,text=label)) +
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Top 10 Best Customer",
+       x = "Quantity",
+       y = "")
+
+data2_plot <- ggplotly(data2,tooltip = "text")
+
+#save plot to rds
+saveRDS(data2_plot, file = "data2_plot.rds")
+```
+
+
+Trasaksi per Jam
+
+```{r}
+online_retail$InvoiceHour <- hour(online_retail$InvoiceDate)
+data3 <- as.data.frame(table(online_retail$InvoiceHour))
+data3 <- setNames(data3,c("Hour","Quantity"))
+data3 <- data3 %>% 
+  mutate(label=glue(
+    "Hour: {Hour}
+    Quantity: {comma(Quantity)}"))
+
+data3 <-   
+  data3 %>% 
+  ggplot(aes(x = Hour, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Hour",
+       x = "Hours",
+       y = "")
+ggplotly(data3,tooltip = "text")
+```
+
+```{r echo=FALSE}
+online_retail$InvoiceHour <- hour(online_retail$InvoiceDate)
+data3 <- as.data.frame(table(online_retail$InvoiceHour))
+data3 <- setNames(data3,c("Hour","Quantity"))
+data3 <- data3 %>% 
+  mutate(label=glue(
+    "Hour: {Hour}
+    Quantity: {comma(Quantity)}"))
+
+data3 <-   
+  data3 %>% 
+  ggplot(aes(x = Hour, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Hour",
+       x = "Hours",
+       y = "")
+
+data3_plot <- ggplotly(data3,tooltip = "text")
+
+#save plot to rds
+saveRDS(data3_plot, file = "data3_plot.rds")
+```
+
+
+Trasaksi per Weekday
+
+```{r}
+online_retail$InvoiceDay <- wday(online_retail$InvoiceDate,label=T,abbr = T)
+data4 <- as.data.frame(table(online_retail$InvoiceDay))
+data4 <- setNames(data4,c("Day","Quantity"))
+data4 <- data4 %>% 
+  mutate(label=glue(
+    "Day: {Day}
+    Quantity: {comma(Quantity)}"))
+
+data4 <- 
+  data4 %>% 
+  filter (Quantity > 0) %>% 
+  ggplot(aes(x = Day, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Weekday",
+       x = "Days",
+       y = "")
+ggplotly(data4,tooltip = "text")
+```
+
+```{r echo=FALSE}
+online_retail$InvoiceDay <- wday(online_retail$InvoiceDate,label=T,abbr = T)
+data4 <- as.data.frame(table(online_retail$InvoiceDay))
+data4 <- setNames(data4,c("Day","Quantity"))
+data4 <- data4 %>% 
+  mutate(label=glue(
+    "Day: {Day}
+    Quantity: {comma(Quantity)}"))
+
+data4 <- 
+  data4 %>% 
+  filter (Quantity > 0) %>% 
+  ggplot(aes(x = Day, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Weekday",
+       x = "Days",
+       y = "")
+
+data4_plot <- ggplotly(data4,tooltip = "text")
+
+#save plot to rds
+saveRDS(data4_plot, file = "data4_plot.rds")
+```
+
+Trasaksi per Bulan
+
+```{r}
+online_retail$InvoiceMonth <- month(online_retail$InvoiceDate,label=T)
+data5 <- as.data.frame(table(online_retail$InvoiceMonth))
+data5 <- setNames(data5,c("Month","Quantity"))
+data5 <- data5 %>% 
+  mutate(label=glue(
+    "Month: {Month}
+    Quantity: {Quantity}"))
+
+data5 <- 
+  data5 %>% 
+  ggplot(aes(x = Month, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Month",
+       x = "Month",
+       y = "")
+ggplotly(data5,tooltip = "text")
+```
+
+```{r echo=FALSE}
+online_retail$InvoiceMonth <- month(online_retail$InvoiceDate,label=T)
+data5 <- as.data.frame(table(online_retail$InvoiceMonth))
+data5 <- setNames(data5,c("Month","Quantity"))
+data5 <- data5 %>% 
+  mutate(label=glue(
+    "Month: {Month}
+    Quantity: {Quantity}"))
+
+data5 <- 
+  data5 %>% 
+  ggplot(aes(x = Month, Quantity,text=label))+
+  geom_col(aes(fill = Quantity))+
+  scale_fill_gradient(low = "#A44512",high = "#FFB21F")+
+  scale_y_continuous(labels = comma)+
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))+
+  labs(title = "Transaction per Month",
+       x = "Month",
+       y = "")
+
+data5_plot <- ggplotly(data5,tooltip = "text")
+
+#save plot to rds
+saveRDS(data5_plot, file = "data5_plot.rds")
+```
+
+Berdasarkan dari preprocessing didapatkan insight yaitu:
+
+- Total Penjualan hingga mencapai $1.186.106
+
+- Total Customer mencapai 4292 user
+
+- Total Transaction 17651 Invoice
+
+- Total Country mencapai 37 negara
+
+- Pada bulan Januari hingga Juli penjualan mengalamin naik turun, lalu mulai bulan September hingga November mengalami kenaikan yang cukup siginifikan.
+
+- Produk yang paling banyak terjual adalah "WHITE HANGING HEART T-LIGHT HOLDER".
+
+- Pembeli dengan pembelian terbanyak yaitu dengan nomor CustomerID "17841"
+
+- Jam 12 siang adalah waktu yang paling sering pembeli melakukan pembelian, lalu yang paling jarang ada di jam 6 pagi.
+
+- Hari Kamis adalah waktu yang paling sering pembeli melakukan pembelian, lalu yang paling jarang ada di hari Jumat.
+
+- Bulan November merupakan bulan dengan penjualan terbanyak, sedangkan Februari merupakan bulan dengan penjualan paling sedikit
+
+# 3. Market Basket Analysis
+
+Market Basket Analysis atau sering disebut Association Rules adalah suatu metode dalam menganalisa perilaku konsumen secara spesifik dari suatu golongan / kelompok tertentu. Kebutuhan market basket analysis berawal dari keakuratan dan manfaat yang dihasilkannya dalam wujud aturan assosiasi (association rules). Yang dimaksud dengan association rules adalah pola-pola keterkaitan data dalam basis data.
+
+```{r echo=FALSE}
+knitr::include_graphics("market_basket_analysis.png")
+```
+
+Market basket analysis dapat digunakan untuk melakukan analisis buying habit konsumen dengan menemukan asosiasi antar beberapa item berbeda yang dipilih oleh konsumen di dalam shopping basket (keranjang belanja) yang dibeli padasuatu transaksi tertentu. Tujuan dari market basket analysis adalah untuk mengetahui produk-produk yang mungkin akan dibeli secara bersamaan
+
+## 3.1. Association Rule Metric
+
+Association Rule adalah salah satu teknik utama atau prosedur dalam Market Basket Analysis untuk mencari hubungan antar item dalam suatu dataset. Association rule (aturan asosiatif) akan menemukan pola tertentu yang mengasosiasikan data yang satu dengan data yang lain.
+
+Untuk metrik yang digunakan untuk association rule ini yaitu:
+
+### 3.1.1. Support
+
+Support menunjukkan proporsi dari jumlah transaksi yang memiliki satu atau lebih item yang muncul secara bersamaan dibandingkan dengan jumlah transaksi secara keseluruhan.
+Untuk rumus yang digunakan adalah sebagai berikut:
+
+$$Support(A) = \frac{Jumlah\ transaksi\ yang\ berisi\ item\ A }{Jumlah\ seluruh\ transaksi}$$
+
+Jika itemnya lebih dari satu, maka rumusnya yaitu:
+
+$$Support(A,B) = \frac{Jumlah\ transaksi\ yang\ berisi\ item\ A\ \&\ B }{Jumlah\ seluruh\ transaksi}$$
+
+### 3.1.2. Confidence
+
+Confidence menunjukkan seberapa besar kemungkinan seseorang akan membeli item B jika terdapat item A, atau bisa dibilang berapa banyak jumlah transaksi yang memiliki item A dan item B diantara transaksi-transaksi yang memiliki item A. Rumus untuk menghitung Confidence adalah sebagai berikut:
+
+$$Confidence(A => B) = \frac{Freq(A\ \cap\ B)}{Freq(A)}$$
+
+### 3.1.3. Lift
+
+Jika Confidence hanya mengukur seberapa besar peluang seorang pembeli membeli item B jika diketahui item A dibeli, maka Lift mengukur seberapa besar pembelian item A dapat meningkatkan peluang pembelian item B. Rumus untuk menghitung Lift adalah sebagai berikut:
+
+$$Lift(A,B) = \frac{Support(A,B)}{Support(A)\ Support(B)}$$
+
+Lift membandingkan peluang ketika keberadaan item A menjadi sinyal kuat bahwa iteml B juga akan dibeli, dengan peluang bahwa keberadaan item A dengan B saling independen dan tidak berkaitan, sehingga:
+
+- Jika nilai Lift = 1, maka kedua item bersifat independen satu sama lain (tidak ada rules yang terbentuk).
+
+- Ketika nilai Lift > 1, maka dapat kita katakan bahwa keberadaan item A meningkatkan peluang bahwa seseorang juga membeli item B. 
+
+- Jika nilai Lift < 1, maka pembelian item A malah menurunkan peluang bahwa seseorang juga akan membeli item B.
+
+
+## 3.2. Apriori
+
+Salah satu algoritma atau metode yang populer untuk mencari Association Rule yaitu Algoritma apriori yaitu suatu metode untuk mencari pola hubungan antar satu atau lebih item dalam suatu dataset.
+
+```{r echo=FALSE}
+knitr::include_graphics("apriori.jpg")
+```
+
+Algoritma apriori banyak digunakan pada data transaksi atau biasa disebut market basket, misalnya sebuah swalayan memiliki market basket, dengan adanya algoritma apriori pemilik swalayan dapat mengetahui pola pembelian seorang konsumen, jika seorang konsumen membeli item A , B, maka punya kemungkinan 50% dia akan membeli item C.
+
+# 4. Modeling
+
+## 4.1. Transformasi Data 
+
+Membuat dataframe menjadi data transaksi
+
+```{r}
+#membuat data transaksi
+DataTransaksi <- ddply(online_retail,c("CustomerID","Date"),
+                         function(df1)paste(df1$Description,
+                                            collapse = ",")) 
+
+#mengubah variabel InvoiceNo dan  Date ke Null, tidak diperlukan untuk analisis data
+DataTransaksi$CustomerID <- NULL
+DataTransaksi$Date <- NULL 
+
+#mengubah nama kolom
+colnames(DataTransaksi) <- c("Items")
+
+DataTransaksi
+```
+
+Eksport file data transaksi kedalam file csv
+
+```{r}
+write.csv(DataTransaksi, "Market Basket.csv", quote = FALSE, row.names = FALSE) 
+```
+
+Import kembali data csv dengan mengguakan function *read.transaction()*
+
+```{r warning=FALSE, error=FALSE}
+transaction <- read.transactions("Market Basket.csv", format = 'basket', sep = ',')
+summary(transaction)
+```
+
+## 4.2. Membuat Rules
+
+Tahap pertama yang dilakukan untuk membuat rules apriori adalah dengan menentukan terlebih dahulu nilai Support dan Confidence. Nilai support ini diartikan sebagai minimal produk yang dibeli sebanyak 0.002 (2%) transaksi, kemudian untuk minimum confidence secara subjektif diberi nilai 0.8 (80%).
+
+```{r warning=FALSE, error=FALSE}
+#membuat model (Min Support 0.002, Confidence 0.8)
+or_apriori <- apriori(transaction, parameter = list(supp=0.002, conf=0.8))
+```
+
+Dari hasil tersebut, didapat sebanyak 10963 rules.
+
+```{r echo=FALSE}
+#save model to rds
+saveRDS(or_apriori, file = "or_apriori.rds")
+```
+
+## 4.3. Hasil Rules
+
+### 4.3.1. Data Rules
+
+**Melihat rules secara rekomendasi product**
+
+```{r echo=FALSE}
+#Joining data
+rules <- cbind(labels = labels(or_apriori), quality(or_apriori))
+rownames(rules) <- NULL
+
+#separate product
+rules_separate_df <- rules %>%
+  separate(labels,sep = "=>", into = c("Product_Selection", "Product_Recommendation"))
+
+#cleansing
+rules_tabel <-
+  rules_separate_df %>%
+  mutate(Product_Selection = tolower(Product_Selection),
+         Product_Selection = str_replace_all(Product_Selection, "\\{|\\}","")) %>%
+  mutate_at(vars(Product_Selection), str_trim) %>% 
+  mutate_at(vars(Product_Selection), str_squish) %>% 
+  mutate(Product_Recommendation = tolower(Product_Recommendation),
+         Product_Recommendation = str_replace_all(Product_Recommendation, "\\{|\\}","")) %>%  
+  mutate_at(vars(Product_Recommendation), str_trim) %>% 
+  mutate_at(vars(Product_Recommendation), str_squish)
+
+#==RENAME COLUMN==#
+names(rules_tabel)[names(rules_tabel) == "support"] <- "Support"
+names(rules_tabel)[names(rules_tabel) == "confidence"] <- "Confidence"
+names(rules_tabel)[names(rules_tabel) == "coverage"] <- "Coverage"
+names(rules_tabel)[names(rules_tabel) == "lift"] <- "Lift"
+names(rules_tabel)[names(rules_tabel) == "count"] <- "Count"
+
+rules_tabel
+```
+
+```{r echo=FALSE}
+#save model to rds
+saveRDS(rules_tabel, file = "rules_tabel.rds")
+```
+
+```{r warning=FALSE, error=FALSE}
+#===PRODUCT SELECTION===#
+#make new column based on From
+rules_tabel_selection <- 
+  rules_tabel %>%
+  mutate(Product_Selection = tolower(Product_Selection),
+         Product_Selection = str_replace_all(Product_Selection, "\\{|\\}","")) %>% 
+  mutate(Quantity = str_count(Product_Selection,",")) %>%
+  separate(col = Product_Selection, into = paste("Product_Selection_",1:max(.$Quantity), sep = ""),
+           sep = ",")
+rules_tabel_selection$Transaction <- seq.int(nrow(rules_tabel_selection))
+
+#===PRODUCT RECOMMENDATION===#
+#make new column based on To
+rules_tabel_recomendation <- 
+  rules_tabel %>%
+  mutate(Product_Recommendation = tolower(Product_Recommendation),
+         Product_Recommendation = str_replace_all(Product_Recommendation, "\\{|\\}","")) %>% 
+  mutate(Quantity = str_count(Product_Recommendation,",")) %>%
+  separate(col = Product_Recommendation, into = paste("Product_Recommendation", sep = ""),
+           sep = ",")
+rules_tabel_recomendation$Transaction <- seq.int(nrow(rules_tabel_recomendation))
+
+#==MERGE DATA==#
+rules_tabel_df <- merge(rules_tabel_selection, rules_tabel_recomendation, by = "Transaction")
+rules_tabel_df <- 
+  rules_tabel_df %>% 
+  select(Product_Selection_1, Product_Selection_2, Product_Selection_3, Product_Selection_4, 
+         Product_Selection_5, Product_Selection_6, Product_Selection_7, Product_Recommendation.y, 
+         Confidence.y, Support.y, Lift.y)
+
+#==RENAME COLUMN==#
+names(rules_tabel_df)[names(rules_tabel_df) == "Product_Recommendation.y"] <- "Product_Recommendation"
+names(rules_tabel_df)[names(rules_tabel_df) == "Confidence.y"] <- "Confidence"
+names(rules_tabel_df)[names(rules_tabel_df) == "Support.y"] <- "Support"
+names(rules_tabel_df)[names(rules_tabel_df) == "Lift.y"] <- "Lift"
+
+#Change "NA" to "NOTHING"
+rules_tabel_df[is.na(rules_tabel_df)] <- "NOTHING"
+
+#Remove space on value
+rules_tabel_df <- 
+  rules_tabel_df %>% 
+  mutate_at(vars(c(Product_Selection_1, Product_Selection_2, Product_Selection_3,Product_Selection_4,
+                   Product_Selection_5, Product_Selection_6,Product_Selection_7)), str_trim) %>% 
+  mutate_at(vars(c(Product_Selection_1, Product_Selection_2, Product_Selection_3,Product_Selection_4,
+                   Product_Selection_5, Product_Selection_6,Product_Selection_7)), str_squish)
+
+rules_tabel_df
+```
+
+```{r echo=FALSE}
+#save model to rds
+saveRDS(rules_tabel_df, file = "rules_tabel_df.rds")
+```
+
+### 4.3.2. Visualization Rules
+
+```{r message = FALSE, warning = FALSE}
+scater_plot_apriori <- plot(or_apriori, engine="plotly")
+
+scater_plot_apriori
+```
+
+```{r echo=FALSE}
+#save plot to rds
+saveRDS(scater_plot_apriori, file = "scater_plot_apriori.rds")
+```
+
+
+```{r message = FALSE, warning = FALSE}
+graph_plot_apriori <- 
+  plot(or_apriori, # rules yang telah dibuat
+     method = "graph",  #
+     measure = "confidence",
+     engine = "htmlwidget") # membuat grafik interaktif
+
+graph_plot_apriori
+```
+
+```{r echo=FALSE}
+#save plot to rds
+saveRDS(graph_plot_apriori, file = "graph_plot_apriori.rds")
+```
+
+Dari graph diatas, dataset ini hanya membentuk beberapa rule. Semakin merah warna node/lingkaran rules maka semakin tinggi nilai lift. Kemudian pada graph terdapat tanda arah/panah yang menunjukan item antecedent (awalan) tertentu menghasilkan item consequent (hasil) melalui rules tertentu. 
+
+# 5. Kesimpulan
+
+Berdasarkan hasil analisa dari hasil visualisasi yang ditampilkan, terdapat beberapa barang yang mempunyai nilai keterikatan yang tinggi dilihat dari barang yang terkoneksi oleh masing-masing rule. Dari penjelasan analisa diatas, dengan menerapkan market basket analysis pada perusahaan retail maka akan memudahkan perusahaan untuk menentukan strategi-strategi, seperti:
+
+- Lebih efisien daripada mass marketing
+
+- Menargetkan produk kepada segmen tertentu
+
+- Dapat mengenal pelanggannya dengan lebih baik
+
+- Dapat memfokuskan strategi perusahaan
+
+- Mengoptimalkan posisi penempatan produk
+
+- Membuat bundle produk baru yang sesuai
+
+- Memberikan penawaran khusus pada beberapa produk
+
+
+
+
+
+
